@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -7,55 +8,96 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-// import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import axios_instance from "@/config/axios";
 
+/*  TYPES  */
+
+type ReportStatus = "pending" | "resolved" | "dismissed";
+
 interface Report {
-   id: number;
-  name: string;
-  reportedBy: string;
-  owner: string;
-  type: string;
-  reportedTime: string;
-  reportReason: string;
-  status: string;
+  _id: string;
+  reportedBy: {
+    name: string;
+  };
+  ownerinfo?: {
+    ownerName: string;
+  };
+  typeModel: string;
+  status: ReportStatus;
+  createdAt: string;
+  reportReason?: string;
+}
+interface UpdateStatusPayload {
+  id: string;
+  status: ReportStatus;
 }
 
+/* COMPONENT */
 
 export default function ReportTable() {
-    const [report, setReport] = useState<Report[]>([]);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const queryClient = useQueryClient();
 
-  // Fetch users
-  const { data: reports, isLoading } = useQuery({
-    queryKey: ["reportList"],
-    queryFn: async () => {
-      const { data } = await axios_instance.get("/report/dashboard/");
-        if (!data.success)
-          throw new Error(data.message || "Failed to fetch posts");
-        console.log(data.data)
-         setReport(data.data)
-        return data.data;
-    },
-  });
-  const fetchUsers = async () => {
-    
+  /* API  */
+  const updateStatus = async ({ id, status }: UpdateStatusPayload) => {
+    const { data } = await axios_instance.patch(
+      `/report/dashboard/${id}`
+      // { status }
+    );
+    return data;
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  /*FETCH REPORTS  */
+  const {
+    data: reports = [],
+    isLoading,
+    isError,
+  } = useQuery<Report[]>({
+    queryKey: ["reportList"],
+    queryFn: async () => {
+      const { data } = await axios_instance.get(
+        "/report/dashboard?page=1&limit=15"
+      );
 
-return (
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      return Array.isArray(data.data.reports)
+        ? data.data.reports
+        : [data.data.reports];
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading reports...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-red-600">
+        Failed to load reports
+      </div>
+    );
+  }
+
+  /* UI */
+   return (
     <div className="bg-gray-100 min-h-screen w-screen p-6">
       <div className="w-full space-y-4">
-      <Card>
+        {/* Header */}
+        <Card>
           <CardContent className="px-2 py-1">
-            <h2 className="text-base font-semibold text-gray-800">REPORTS</h2>
+            <h2 className="text-base font-semibold text-gray-800"> REPORT</h2>
           </CardContent>
         </Card>
 
+        {/* Search */}
         <Card>
           <CardContent className="px-5 py-3">
             <input
@@ -65,6 +107,7 @@ return (
           </CardContent>
         </Card>
 
+        {/* Table */}
         <Card className="overflow-x-auto">
           <CardContent className="p-0">
             <table className="w-full text-sm min-w-[700px]">
@@ -78,7 +121,8 @@ return (
                   <th className="p-3 text-left">View</th>
                 </tr>
               </thead>
-               <tbody>
+
+              <tbody>
                 {reports.length === 0 ? (
                   <tr>
                     <td
@@ -148,14 +192,14 @@ return (
               <div className="flex gap-3">
                 <button
                   className={`px-4 py-2 rounded border ${
-                    selectedReport.status === "Approved"
+                    selectedReport.status === "resolved"
                       ? "bg-green-600 text-white"
                       : "bg-white"
                   }`}
                   onClick={() =>
                     setSelectedReport({
                       ...selectedReport,
-                      status: "Approved",
+                      status: "resolved",
                     })
                   }
                 >
@@ -164,14 +208,14 @@ return (
 
                 <button
                   className={`px-4 py-2 rounded border ${
-                    selectedReport.status === "Disapproved"
+                    selectedReport.status === "dismissed"
                       ? "bg-red-600 text-white"
                       : "bg-white"
                   }`}
                   onClick={() =>
                     setSelectedReport({
                       ...selectedReport,
-                      status: "Disapproved",
+                      status: "dismissed",
                     })
                   }
                 >
@@ -186,7 +230,9 @@ return (
                 >
                   Close
                 </button>
-                <button className="px-4 py-2 bg-blue-600 text-white rounded">
+                <button className="px-4 py-2 bg-blue-600 text-white rounded"
+                 onClick={() => setSelectedReport(null)} >
+                {/* onClick={() => updateStatus(reports.id)} */}
                   Save
                 </button>
               </div>

@@ -31,6 +31,7 @@ export type SidebarItemType =
 	| "Create"
 	| "Users"
 	| "Report"
+	| "Reason"
 	| "Profile"
 	| ""
 
@@ -99,6 +100,11 @@ const createNavigationItems = (
 		),
 		label: "Profile",
 		onClick: () => handleItemChange("Profile"),
+	},
+	{
+		icon: <MessageCircleMore />,
+		label: "Reason",
+		onClick: () => handleItemChange("Reason"),
 	},
 ]
 
@@ -182,6 +188,9 @@ const Sidebar = () => {
 					break
 				case "Profile":
 					router.push(`/${currentUsername}`)
+					break
+				case "Reason":
+					router.push("/dashboard/reason")
 					break
 				default:
 					router.push("/")

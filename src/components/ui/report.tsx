@@ -12,7 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios_instance from "@/config/axios";
 
 interface Report {
-  id: number;
+   id: number;
   name: string;
   reportedBy: string;
   owner: string;
@@ -22,22 +22,22 @@ interface Report {
   status: string;
 }
 
+
 export default function ReportTable() {
-   const [report, setReport] = useState<Report[]>([]);
+    const [report, setReport] = useState<Report[]>([]);
 
   // Fetch users
   const { data: reports, isLoading } = useQuery({
-      queryKey: ["reportList"],
-      queryFn: async () => {
-        const { data } = await axios_instance.get("/report/dashboard/");
+    queryKey: ["reportList"],
+    queryFn: async () => {
+      const { data } = await axios_instance.get("/report/dashboard/");
         if (!data.success)
           throw new Error(data.message || "Failed to fetch posts");
         console.log(data.data)
-         
-        setReport(data.data)
+         setReport(data.data)
         return data.data;
-      },
-    });
+    },
+  });
   const fetchUsers = async () => {
     
   };
@@ -47,10 +47,10 @@ export default function ReportTable() {
   }, []);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-  return (
+return (
     <div className="bg-gray-100 min-h-screen w-screen p-6">
       <div className="w-full space-y-4">
-        <Card>
+      <Card>
           <CardContent className="px-2 py-1">
             <h2 className="text-base font-semibold text-gray-800">REPORTS</h2>
           </CardContent>
@@ -78,22 +78,39 @@ export default function ReportTable() {
                   <th className="p-3 text-left">View</th>
                 </tr>
               </thead>
-              <tbody>
-                {reports?.map((r:any,index:number) => (
-                  <tr key={index} className="border-t">
-                    <td className="p-3">{r.typeModelId}</td>
-                    <td className="p-3">{r.reasonId}</td>
-                    <td className="p-3">{r.typeModel}</td>
-                    <td className="p-3">{r.status}</td>
-                    <td className="p-3">{r.createdAt}</td>
+               <tbody>
+                {reports.length === 0 ? (
+                  <tr>
                     <td
-                      className="p-3 text-blue-600 cursor-pointer"
-                      onClick={() => setSelectedReport(r)}
+                      colSpan={6}
+                      className="p-4 text-center text-gray-500"
                     >
-                      View
+                      No reports found
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  reports.map((r) => (
+                    <tr key={r._id} className="border-t">
+                      <td className="p-3">{r.reportedBy?.name}</td>
+                      <td className="p-3">{r.ownerinfo?.ownerName ?? "test1"} </td>
+                      <td className="p-3">{r.typeModel}</td>
+                     <td
+                        className="p-3 text-blue-600 cursor-pointer"
+                        onClick={() => setSelectedReport(r)}
+                      >
+                      pending
+                      </td>
+                      <td className="p-3">{new Date(r.createdAt).toLocaleString()}
+                      </td>
+                      <td
+                        className="p-3 text-blue-600 cursor-pointer"
+                        onClick={() => setSelectedReport(r)}
+                      >
+                        View
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </CardContent>
@@ -113,13 +130,15 @@ export default function ReportTable() {
             <>
               <div className="space-y-2 text-sm">
                 <p>
-                  <b>Reported By:</b> {selectedReport.reportedBy}
+                  <b>Reported By:</b>{" "}
+                  {selectedReport.reportedBy?.name}
                 </p>
                 <p>
-                  <b>Report Reason:</b> {selectedReport.reportReason}
+                  <b>Report Reason:</b>{" "}
+                  {selectedReport.reportReason ?? "—"}
                 </p>
                 <p>
-                  <b>Type:</b> {selectedReport.type}
+                  <b>Type:</b> {selectedReport.typeModel}
                 </p>
                 <p>
                   <b>Current Status:</b> {selectedReport.status}

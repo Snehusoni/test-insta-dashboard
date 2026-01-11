@@ -3,6 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import axios_instance from "@/config/axios";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 interface User {
   id: number;
@@ -11,6 +12,7 @@ interface User {
   email: string;
   type: string;
   createdAt: string;
+
 }
 
 interface UsersResponse {
@@ -39,6 +41,7 @@ export default function UserTable() {
 
   const users = data?.findAllUser ?? [];
 
+   
   return (
     <div className="bg-gray-100 min-h-screen w-screen p-6">
       <Card className="w-full overflow-x-auto">
@@ -67,7 +70,9 @@ export default function UserTable() {
                 users.map((u) => (
                   <tr key={u.id} className="border-t">
                     <td className="p-3">{u.name}</td>
-                    <td className="p-3">{u.username}</td>
+                    <td className="p-3 text-blue-600 cursor-pointer">
+                  <Link href={`http://localhost:3000/${u.username}`} target="blank">{u.username}</Link>
+                  </td>
                     <td className="p-3">{u.email}</td>
                     <td className="p-3">{u.type}</td>
                     <td className="p-3">{u.createdAt}</td>
@@ -83,3 +88,6 @@ export default function UserTable() {
     </div>
   );
 }
+
+
+

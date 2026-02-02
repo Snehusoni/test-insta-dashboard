@@ -8,11 +8,12 @@ import {
 	Heart,
 	Home,
 	MessageCircleMore,
-	PlusSquare,
 	Search,
 	Users,
 	FileText,
-
+	NotebookText,
+	Snowflake,
+	
 } from "lucide-react"
 import Image from "next/image"
 import { useUserStore } from "@/store/store"
@@ -33,6 +34,7 @@ export type SidebarItemType =
 	| "Report"
 	| "Reason"
 	| "Profile"
+	| "Job"
 	| ""
 
 interface NavigationItem {
@@ -70,10 +72,10 @@ const createNavigationItems = (
 		label: "Notifications",
 		onClick: () => handleItemChange("Notifications"),
 	},
-	{
-		icon: <PlusSquare />,
-		label: "Create",
-	},
+	// {
+	// 	icon: <PlusSquare />,
+	// 	label: "Create",
+	// },
 	{
 	    icon: <Users />,
 	    label: "Users",
@@ -102,9 +104,14 @@ const createNavigationItems = (
 		onClick: () => handleItemChange("Profile"),
 	},
 	{
-		icon: <MessageCircleMore />,
+		icon: <Snowflake />,
 		label: "Reason",
 		onClick: () => handleItemChange("Reason"),
+	},
+	{
+		icon: <NotebookText />,
+		label: "Job",
+		onClick: () => handleItemChange("Job"),
 	},
 ]
 
@@ -116,12 +123,16 @@ const Sidebar = () => {
 	const currentUsername = useUserStore((state) => state.username)
 	const getActiveItem = (): SidebarItemType => {
 		if (pathname === "/") return "Home"
+		
 		if (pathname === "/search") return "Search"
 		if (pathname === "/explore") return "Explore"
 		if (pathname === "/messages") return "Messages"
 		if (pathname === "/notifications") return "Notifications"
 		if (pathname === "/dashboard/users") return "Users"
-        if (pathname === "/reports") return "Report"
+        if (pathname === "/dashboard/reports") return "Report"
+		if (pathname.startsWith("/dashboard/job")) return "Job"
+        if (pathname.startsWith("/dashboard/reason")) return "Reason"
+
 		if (
 			pathname.startsWith("/") &&
 			pathname !== "/" &&
@@ -129,9 +140,15 @@ const Sidebar = () => {
 			!pathname.startsWith("/explore") &&
 			!pathname.startsWith("/messages") &&
 			!pathname.startsWith("/notifications")
+			
 		) {
 			const name = pathname.slice(1)
 			if (name === currentUsername) return "Profile"
+			else return ""
+		}
+		{
+			const name = pathname.slice(1)
+			if (name === currentUsername) return ""
 			else return ""
 		}
 		return "Home"
@@ -191,6 +208,9 @@ const Sidebar = () => {
 					break
 				case "Reason":
 					router.push("/dashboard/reason")
+					break 
+				case "Job":
+					router.push("/dashboard/job")
 					break
 				default:
 					router.push("/")

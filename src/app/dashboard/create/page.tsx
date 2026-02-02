@@ -1,12 +1,11 @@
-"use client";
-// import Sidebar from "@/components/Sidebar"
-import Create from "@/components/ui/create";
+// "use client";
 
-export default function UsersTable() {
-  return (
-    <div className="flex h-screen overflow-hidden">
-      {/* <Sidebar/> */}
-      <Create/>
-    </div>
-  )
-}
+// import Create from "@/components/ui/create.page";
+
+// export default function CreatePage() {
+//   return (
+//     <div>
+//       <Create />
+//     </div>
+//   );
+// }

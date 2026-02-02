@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react"
 import Graph  from "@/components/ui/user-graph"
-import Posts from "@/components/ui/posts"
-import { PostSkeleton } from "@/components/ui/skeleton"
+// import Posts from "@/components/ui/posts"
+// import { PostSkeleton } from "@/components/ui/skeleton"
 import { type Post } from "@/types/post"
 import axios_instance from "@/config/axios"
 
@@ -58,7 +58,7 @@ const usePostsData = () => {
 }
 
 const Feed = () => {
-	const { posts, isLoadingPosts, hasMore, loadMore } = usePostsData()
+	// const { posts, isLoadingPosts, hasMore, loadMore } = usePostsData()
 
 	return (
 		<div className="flex-1 h-screen overflow-y-auto bg-gray-50">
@@ -67,7 +67,7 @@ const Feed = () => {
 					{/* Graph - now with real API integration */}
 					<Graph />
 
-					{/* Posts */}
+					{/* Posts
 					{isLoadingPosts ? (
 						<PostSkeleton />
 					) : (
@@ -77,7 +77,7 @@ const Feed = () => {
 							hasMore={hasMore}
 							onLoadMore={loadMore}
 						/>
-					)}
+					)} */}
 				</div>
 			</main>
 		</div>

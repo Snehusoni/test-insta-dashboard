@@ -20,7 +20,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import UpdatePage from "./Update.job";
 import CreateJobPage from "./create.page";
 
-/* ================= TYPES ================= */
+/*TYPES */
 
 interface SalaryRange {
   min: number;
@@ -42,7 +42,7 @@ interface Job {
   updatedAt: string;
 }
 
-/* ================= COMPONENT ================= */
+/*  COMPONENT  */
 
 export default function JobListPage() {
   const queryClient = useQueryClient();
@@ -53,7 +53,7 @@ export default function JobListPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  /* ================= FETCH ================= */
+  /* FETCH  */
 
   const {
     data: jobs = [],
@@ -67,7 +67,7 @@ export default function JobListPage() {
     },
   });
 
-  /* ================= SEARCH ================= */
+  /*  SEARCH  */
 
   const filteredJobs = useMemo(() => {
     const keyword = search.trim().toLowerCase();
@@ -90,7 +90,7 @@ export default function JobListPage() {
     );
   }, [jobs, search]);
 
-  /* ================= DELETE ================= */
+  /*DELETE  */
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) =>
@@ -106,7 +106,7 @@ export default function JobListPage() {
     },
   });
 
-  /* ================= LOADING / ERROR ================= */
+  /*LOADING / ERROR  */
 
   if (isLoading) {
     return (
@@ -122,19 +122,19 @@ export default function JobListPage() {
     return <div className="p-6 text-red-500">Failed to load jobs</div>;
   }
 
-  /* ================= UI ================= */
+  /* UI  */
 
   return (
     <div className="space-y-6 w-full">
 
-      {/* ================= TITLE ================= */}
+      {/* TITLE  */}
       <Card>
         <CardContent className="p-4 font-semibold text-lg">
           Jobs
         </CardContent>
       </Card>
 
-      {/* ================= SEARCH + ADD (FIXED UI) ================= */}
+      {/*  SEARCH + ADD (FIXED UI)  */}
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-4 w-full">
@@ -167,7 +167,7 @@ export default function JobListPage() {
         </CardContent>
       </Card>
 
-      {/* ================= TABLE ================= */}
+      {/* TABLE  */}
       <Card>
         <CardContent className="p-0">
           <div className="max-h-[520px] overflow-y-auto">
@@ -245,7 +245,7 @@ export default function JobListPage() {
         </CardContent>
       </Card>
 
-      {/* ================= EDIT ================= */}
+      {/* EDIT  */}
       <Dialog open={openEdit} onOpenChange={setOpenEdit}>
         <DialogContent>
           <DialogHeader>
@@ -260,7 +260,7 @@ export default function JobListPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ================= DELETE ================= */}
+      {/*  DELETE  */}
       <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>

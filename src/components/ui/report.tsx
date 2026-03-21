@@ -93,7 +93,7 @@ export default function ReportTable() {
         {/* Header */}
         <Card>
           <CardContent className="px-2 py-1">
-            <h2 className="text-base font-semibold text-gray-800"> REPORT</h2>
+            <h2 className="text-base font-semibold text-gray-800"> Report</h2>
           </CardContent>
         </Card>
 

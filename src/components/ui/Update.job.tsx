@@ -8,29 +8,12 @@ import toast from "react-hot-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-// import { jobs } from "@/types/job";
-
-// interface SalaryRange {
-//   min: number;
-//   max: number;
-// }
-
-// interface Job {
-//   _id: string;
-//   title: string;
-//   department: string;
-//   location: string;
-//   work_type: string;
-//   experience_level: string;
-//   salary_range: SalaryRange;
-//   requirements: string[];
-//   status: "draft" | "active" | "closed";
-// }
+import { Textarea } from "@/components/ui/textarea";
 
 interface CreateJobPageProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  job?:any | null;
+  job?: any | null;
 }
 
 export default function CreateJobPage({
@@ -41,7 +24,7 @@ export default function CreateJobPage({
   const queryClient = useQueryClient();
 
   /* FORM STATE */
-  const [title, setTitle] = useState(job?.title);
+  const [title, setTitle] = useState("");
   const [department, setDepartment] = useState("");
   const [location, setLocation] = useState("");
   const [workType, setWorkType] = useState("");
@@ -49,11 +32,13 @@ export default function CreateJobPage({
   const [minSalary, setMinSalary] = useState<number | "">("");
   const [maxSalary, setMaxSalary] = useState<number | "">("");
   const [requirements, setRequirements] = useState("");
-  const [status, setStatus] = useState< "draft" | "published" | "on hold" | "closed" | "archived"> ("draft");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState<
+    "draft" | "published" | "on hold" | "closed" | "archived"
+  >("draft");
 
   /* PREFILL WHEN EDITING */
   useEffect(() => {
-    console.log("jobs",job)
     if (job) {
       setTitle(job.title);
       setDepartment(job.department);
@@ -63,6 +48,7 @@ export default function CreateJobPage({
       setMinSalary(job.salary_range.min);
       setMaxSalary(job.salary_range.max);
       setRequirements(job.requirements.join(", "));
+      setDescription(job.description || "");
       setStatus(job.status);
     } else {
       resetForm();
@@ -78,6 +64,7 @@ export default function CreateJobPage({
     setMinSalary("");
     setMaxSalary("");
     setRequirements("");
+    setDescription("");
     setStatus("draft");
   };
 
@@ -98,23 +85,19 @@ export default function CreateJobPage({
           .split(",")
           .map((r) => r.trim())
           .filter(Boolean),
+        description,
         status,
       };
 
       if (job?._id) {
-        return axios_instance.patch(
-          `/job/dashboard/${job._id}`,
-          payload
-        );
+        return axios_instance.patch(`/job/dashboard/${job._id}`, payload);
       }
 
       return axios_instance.post("/job/dashboard", payload);
     },
 
     onSuccess: () => {
-      toast.success(
-        job ? "Job updated successfully" : "Job created successfully"
-      );
+      toast.success(job ? "Job updated successfully" : "Job created successfully");
       queryClient.invalidateQueries({ queryKey: ["jobList"] });
       onOpenChange(false);
       resetForm();
@@ -138,9 +121,6 @@ export default function CreateJobPage({
   return (
     <Card className="border-0 shadow-none">
       <CardContent className="space-y-4 p-0">
-        <h2 className="text-lg font-semibold">
-          {job ? "Edit Job" : "Create Job"}
-        </h2>
 
         <Input
           placeholder="Job Title"
@@ -177,17 +157,13 @@ export default function CreateJobPage({
             type="number"
             placeholder="Min Salary"
             value={minSalary}
-            onChange={(e) =>
-              setMinSalary(e.target.valueAsNumber || "")
-            }
+            onChange={(e) => setMinSalary(e.target.valueAsNumber || "")}
           />
           <Input
             type="number"
             placeholder="Max Salary"
             value={maxSalary}
-            onChange={(e) =>
-              setMaxSalary(e.target.valueAsNumber || "")
-            }
+            onChange={(e) => setMaxSalary(e.target.valueAsNumber || "")}
           />
         </div>
 
@@ -197,11 +173,16 @@ export default function CreateJobPage({
           onChange={(e) => setRequirements(e.target.value)}
         />
 
+        {/* Description Box */}
+        <Textarea
+          placeholder="Job Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+
         <select
           value={status}
-          onChange={(e) =>
-            setStatus(e.target.value as any)
-          }
+          onChange={(e) => setStatus(e.target.value as any)}
           className="w-full border rounded px-3 py-2 text-sm"
         >
           <option value="draft">Draft</option>
@@ -210,17 +191,11 @@ export default function CreateJobPage({
         </select>
 
         <div className="flex justify-end gap-3 pt-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
 
-          <Button
-            onClick={handleSubmit}
-            disabled={mutation.isPending}
-          >
+          <Button onClick={handleSubmit} disabled={mutation.isPending}>
             {job ? "Update Job" : "Create Job"}
           </Button>
         </div>

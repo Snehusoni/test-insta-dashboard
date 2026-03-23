@@ -10,242 +10,218 @@ import { Input } from "./input";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
-// interface User {
-//   id: number;
-//   name: string;
-//   username: string;
-//   email: string;
-//   type: string;
-//   createdAt: string;
-// }
-
-// interface UsersResponse {
-//   findAllUser: User[];
-// }
-
-
 export default function UserTable() {
   const [deSearch, setDeSearch] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const limit = 10;
 
-  useEffect(()=>{
-    // if (search.length <= 2) return;
-    if(search.length === 0) {
+  // debounce
+  useEffect(() => {
+    if (search.length === 0) {
       setDeSearch("");
       return;
     }
-    if(search.length >2) {
-    
-       const prvTime = setTimeout(() => {
-      setDeSearch(search)
-    },500)
 
-    // next time will clear
-    return ()=>clearTimeout(prvTime)
-  }
-  },[search])
-  
-  const { data, isLoading, isError,refetch } = useQuery({
-    queryKey: ["usersList",{deSearch,page,limit}],
+    if (search.length > 2) {
+      const timer = setTimeout(() => {
+        setDeSearch(search);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [search]);
+
+  // API
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: ["usersList", { deSearch, page, limit }],
     queryFn: async () => {
-      
-      const res = await axios_instance.get(`/users/dashboard/allUser?limit=${limit}&page=${page}&search=${deSearch}`);
-      if (!res.data.success) {
-        throw new Error(res.data.data.message);
-      }
-      return res.data.users;
-    },
-    enabled: search.length === 0 || search.length > 2, 
+      const res = await axios_instance.get(
+        `/users/dashboard/allUser?limit=${limit}&page=${page}&search=${deSearch}`
+      );
 
+      if (!res.data.success) {
+        throw new Error(res.data.message);
+      }
+
+      return res.data; // ✅ FIX
+    },
+    enabled: search.length === 0 || search.length > 2,
   });
 
-  const BanUserMutation = useMutation({
-    mutationFn:async (id:string) => {
-      const response = await axios_instance.post(`/users/dashboard/ban/${id}`)
-      console.log("when unban",id,response)
-      return response.data
-    },
-    
-    onSuccess:(data) => {
-      toast.success(data.message || "user successfully ban")
-    },
-    
-    onError:(error:any) => {
-      toast.success( error.response?.data?.message || "Failed to ban user")
-    }
-  })
-  
-  const UnBanUserMutation = useMutation({
-    mutationFn:async (id:string) => {
-      const response = await axios_instance.post(`/users/dashboard/unban/${id}`)
-      console.log("when unban",id,response)
-      return response.data
-    },
+  // ✅ FIX
+  const users = Array.isArray(data?.users) ? data.users : [];
+  const total = data?.total || 0;
 
-    onSuccess:(data) => {
-      toast.success(data.message || "user successfully Unban")
-    },
-
-    onError:(error:any) => {
-      toast.success( error.response?.data?.message || "Failed to Unban user")
-    }
-  })
-
-  if (isLoading) {
-    return <p className="p-4">Loading users...</p>;
-  }
-
-  if (isError) {
-    return <p className="p-4 text-red-500">Failed to load users</p>;
-  }
-
-  const users = data?.users ?? [];
-
-  const handleSearch = (e:any)=>{
-    e.preventDefault()
+  const handleSearch = (e: any) => {
     setSearch(e.target.value);
     setPage(1);
-  }
+  };
+
+  // ban
+  const BanUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await axios_instance.post(`/users/dashboard/ban/${id}`);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      refetch();
+    },
+  });
+
+  // unban
+  const UnBanUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await axios_instance.post(`/users/dashboard/unban/${id}`);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      toast.success(data.message);
+      refetch();
+    },
+  });
+
+  if (isLoading) return <p className="p-4">Loading users...</p>;
+  if (isError) return <p className="p-4 text-red-500">Failed to load users</p>;
+
   return (
-    
-    <div className="bg-muted min-h-svh w-full p-6">
- <div className="max-w-4xl overflow-hidden ">
-      {/*  title */}
-       <Card>
-          <CardContent className="px-4 ">
-            <h2 className="text-base font-semibold text-gray-800 capitalize">User List</h2>
+    <div className="bg-muted min-h-svh w-full flex justify-center">
+
+      {/* ✅ spacing FIX */}
+      <div className="w-full max-w-4xl p-6 space-y-6">
+
+        {/* TITLE */}
+        <Card>
+          <CardContent className="p-5">
+            <h2 className="text-base font-semibold text-gray-800">
+              User List
+            </h2>
           </CardContent>
         </Card>
 
-      {/* search */}
-      <Card>
-          <CardContent className="px-4 ">
-            <div className="flex justify-between gap-4 sm:flex-row flex-col">
-              <Input
-                placeholder="Search"
-                value={search }
-                onChange={handleSearch}
-                className="w-full max-w-md border rounded px-3 py-2 outline-none"
-              />
-              </div>
+        {/* SEARCH */}
+        <Card>
+          <CardContent className="p-5">
+            <Input
+              placeholder="Search"
+              value={search}
+              onChange={handleSearch}
+              className="max-w-md"
+            />
           </CardContent>
         </Card>
-        <div className="">
 
-      <Card className="w-full overflow-x-auto">
-        <CardContent className="p-0">
-          <table className="w-full text-sm min-w-[700px]">
-            <thead className="bg-gray-50">
-              <tr className="text-center">
-                <th className="p-3 text-left">Name</th>
-                <th className="p-3 text-left">Username</th>
-                <th className="p-3 text-left">Email</th>
-                <th className="p-3 text-left">Ban Reason</th>
-                <th className="p-3 text-left">Created At</th>
-                <th className="p-3 text-left">Action</th>
-                <th className="p-3 text-left">isBand</th>
-              </tr>
-            </thead>
+        {/* TABLE */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[700px]">
 
-            <tbody className="overflow-auto">
-              {users.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-4 text-center text-gray-500">
-                    No users found
-                  </td>
-                </tr>
-              ) : (
-               users.length > 0 && ( users.map((u:any) => (
-                  <tr key={u.id} className="border-t">
-                    <td className="p-3">{u.name}</td>
-                    <td className="p-3 text-blue-600 cursor-pointer">
-                      <Link href={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/${u.username}`} target="blank">{u.username}</Link>
-                    </td>
-                    <td className="p-3">{u.email}</td>
-                    <td className="p-3">{u.banReason ? u.banReason : "-"}</td>
-                    <td className="p-3">{new Date(u.createdAt).toLocaleDateString()}</td>
-                    <td>
-                        {/* <tr className="p-3 flex gap-2 justify-start cursor-pointer">
-                          <td className=" text-blue-600 ">
-                            <Eye size={16}/>
-                          </td>
-                          <td className=" text-red-600">
-                            <Trash size={16}/>
-                          </td>
-                        </tr> */}
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-5 py-3 text-left">Name</th>
+                    <th className="px-5 py-3 text-left">Username</th>
+                    <th className="px-5 py-3 text-left">Email</th>
+                    <th className="px-5 py-3 text-left">Ban Reason</th>
+                    <th className="px-5 py-3 text-left">Created At</th>
+                    <th className="px-5 py-3 text-left">Action</th>
+                    <th className="px-5 py-3 text-left">isBand</th>
+                  </tr>
+                </thead>
 
-                  <div className="flex gap-4 justify-start items-center">
-                      <button className="text-blue-600 hover:text-blue-800 cursor-pointer">
-                        <Eye size={16}/>
-                      </button>
-                      <button className="text-red-600 hover:text-red-800 cursor-pointer">
-                        <Trash size={16}/>
-                      </button>
-                    </div>
-                    </td>
-                    <td>
-                    <Button
-                      className={`relative w-12 h-6 rounded-full transition p-3 ${
-                        u.banned ? "bg-black" : "bg-gray-300"}`}
+                <tbody>
+                  {users.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-6 text-center text-gray-500">
+                        No users found
+                      </td>
+                    </tr>
+                  ) : (
+                    users.map((u: any) => (
+                      <tr key={u.id} className="border-t hover:bg-gray-50">
 
-                        onClick={ () => (
-                          u.banned 
-                        ? UnBanUserMutation.mutate(u.id, { onSuccess: () => refetch() }) 
-                        : BanUserMutation.mutate(u.id, { onSuccess: () => refetch() })
-                        )}
-                    >
-                      <span
-                        className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition ${
-                          u.banned ? "translate-x-6" : ""
-                        }`}
-                      />
-                    </Button>
-                    </td>
-                    <td>
-                      <p>
-                        {u._id}
-                      </p>
-                    </td>
-                  </tr>)
-                ))
-              )}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
-        </div>
+                        <td className="px-5 py-3">{u.name}</td>
 
-       {/* Pagination Controls */}
-       <div className="md:flex-row flex-col gap-5  p-4 border-t border-gray-100 flex justify-between items-center text-sm text-gray-600">
-        <strong className="flex gap-4">
+                        <td className="px-5 py-3 text-blue-600">
+                          <Link
+                            href={`${process.env.NEXT_PUBLIC_FRONTEND_URL}/${u.username}`}
+                            target="_blank"
+                          >
+                            {u.username}
+                          </Link>
+                        </td>
 
-         <span>  Page {page} | {Math.ceil((data.total)/limit) }</span> 
-         <span> User {limit*page>data.total?data.total:limit*page } |{data?.total}</span> 
-        </strong>
-         <div className=" flex gap-2.5">
+                        <td className="px-5 py-3">{u.email}</td>
 
-          <Button 
-            disabled={page === 1}
-            onClick={() => setPage(p => p - 1)}
-            className="px-4 py-2 border  disabled:opacity-50"
-            >
-            Previous
-          </Button>
-          <Button 
-          disabled = {limit*page>data.total}
-            onClick={() => setPage(p => p + 1)}
-            className="px-4 py-2 border rounded "
-            >
-            Next
-          </Button>
+                        <td className="px-5 py-3">
+                          {u.banReason || "-"}
+                        </td>
+
+                        <td className="px-5 py-3">
+                          {new Date(u.createdAt).toLocaleDateString()}
+                        </td>
+
+                        <td className="px-5 py-3">
+                          <div className="flex gap-4">
+                            <Eye size={16} className="text-blue-600" />
+                            <Trash size={16} className="text-red-600" />
+                          </div>
+                        </td>
+
+                        <td className="px-5 py-3">
+                          <Button
+                            className={`relative w-12 h-6 rounded-full ${
+                              u.banned ? "bg-black" : "bg-gray-300"
+                            }`}
+                            onClick={() =>
+                              u.banned
+                                ? UnBanUserMutation.mutate(u.id)
+                                : BanUserMutation.mutate(u.id)
+                            }
+                          >
+                            <span
+                              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full ${
+                                u.banned ? "translate-x-6" : ""
+                              }`}
+                            />
+                          </Button>
+                        </td>
+
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+
+              </table>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* PAGINATION */}
+        <div className="flex justify-between items-center p-5 border rounded-lg text-sm">
+          <span>
+            Page {page} | {Math.ceil(total / limit)}
+          </span>
+
+          <div className="flex gap-2">
+            <Button
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </Button>
+
+            <Button
+              disabled={limit * page >= total}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
         </div>
-    </div>
+
+      </div>
     </div>
   );
 }
-
-
-
